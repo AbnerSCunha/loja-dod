@@ -31,7 +31,7 @@ export function Navbar() {
         : 'bg-transparent'
         } `}>
       <div className="font-bold text-xl tracking-widest uppercase">
-        <Link to="/"> <img src="src/assets/dod-logo.webp" alt="DOD Alfaiataria" className="h-15 inline-block mr-2" /></Link>
+        <Link to="/"> <img src="https://dcdn-us.mitiendanube.com/stores/007/433/965/themes/common/logo-8984120382805529401-1788200245-125b4170410ec4506d7c4767b06d2ee71788200245-480-0.webp" alt="DOD Alfaiataria" className="h-15 inline-block mr-2" /></Link>
       </div>
       <ul className="flex gap-6 m-0 p-0 list-none">
         <li><Link to="/" className="text-sm text-white uppercase hover:text-gray-200 transition-colors">Catálogo</Link></li>
