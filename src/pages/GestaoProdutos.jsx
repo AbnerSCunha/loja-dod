@@ -127,7 +127,7 @@ export function GestaoProdutos() {
             <option value="">Selecione a Categoria</option>
             {categorias.map(cat => (
               <option key={cat.id_categoria} value={cat.id_categoria}>
-                {cat.id_categoria} - {cat.nome}
+                {cat.id_categoria} - {cat.descricao}
               </option>
             ))}
           </select>
