@@ -98,7 +98,7 @@ export function Vendas() {
   return (
     <div className="w-full pb-12 pt-32 px-4 md:px-12">
       <h1 className="text-2xl font-bold tracking-widest uppercase text-black mb-8 border-b border-gray-200 pb-4">
-        Frente de Caixa (PDV)
+        Frente de Caixa
       </h1>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
