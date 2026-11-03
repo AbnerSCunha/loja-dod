@@ -40,7 +40,7 @@ export function GestaoProdutos() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            const resposta = await fetch('http://localhost:3000/api/produtos', {
+            const resposta = await fetch('https://loja-dod.onrender.com/api/produtos', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({

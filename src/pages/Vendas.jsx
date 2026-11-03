@@ -18,9 +18,9 @@ export function Vendas() {
   const carregarDados = async () => {
     try {
       const [resProd, resCli, resFunc] = await Promise.all([
-        fetch('http://localhost:3000/api/produtos'),
-        fetch('http://localhost:3000/api/clientes'),
-        fetch('http://localhost:3000/api/funcionarios')
+        fetch('https://loja-dod.onrender.com/api/produtos'),
+        fetch('https://loja-dod.onrender.com/api/clientes'),
+        fetch('https://loja-dod.onrender.com/api/funcionarios')
       ]);
       
       setProdutos(await resProd.json());
@@ -68,7 +68,7 @@ export function Vendas() {
     }
 
     try {
-      const resposta = await fetch('http://localhost:3000/api/vendas', {
+      const resposta = await fetch('https://loja-dod.onrender.com/api/vendas', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

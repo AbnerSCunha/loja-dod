@@ -10,7 +10,7 @@ export function Clientes() {
 
   const carregarClientes = async () => {
     try {
-      const resposta = await fetch('http://localhost:3000/api/clientes');
+      const resposta = await fetch('https://loja-dod.onrender.com/api/clientes');
       const dados = await resposta.json();
       
       if (resposta.ok && Array.isArray(dados)) {
@@ -35,7 +35,7 @@ export function Clientes() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const resposta = await fetch('http://localhost:3000/api/clientes', {
+      const resposta = await fetch('https://loja-dod.onrender.com/api/clientes', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)

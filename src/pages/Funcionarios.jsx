@@ -9,7 +9,7 @@ export function Funcionarios() {
 
   const carregarFuncionarios = async () => {
     try {
-      const resposta = await fetch('http://localhost:3000/api/funcionarios');
+      const resposta = await fetch('https://loja-dod.onrender.com/api/funcionarios');
       const dados = await resposta.json();
       
       if (resposta.ok && Array.isArray(dados)) {
@@ -34,7 +34,7 @@ export function Funcionarios() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const resposta = await fetch('http://localhost:3000/api/funcionarios', {
+      const resposta = await fetch('https://loja-dod.onrender.com/api/funcionarios', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)

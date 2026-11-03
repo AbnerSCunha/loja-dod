@@ -7,7 +7,7 @@ export function Catalogo() {
     useEffect(() => {
     const carregarProdutos = async () => {
       try {
-        const resposta = await fetch('http://localhost:3000/api/produtos');
+        const resposta = await fetch('https://loja-dod.onrender.com/api/produtos');
         const dados = await resposta.json();
         
         // Proteção: só atualiza se for um array válido
