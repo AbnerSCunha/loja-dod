@@ -74,8 +74,7 @@ export function GestaoProdutos() {
     if (!window.confirm("Tem certeza que deseja excluir este produto?")) return;
 
     try {
-      // Lembre-se de usar o seu link do Render aqui em vez de localhost se estiver alterando direto em produção!
-      const resposta = await fetch(`https://SEU-LINK-DO-RENDER.onrender.com/api/produtos/${id_produto}`, {
+      const resposta = await fetch(`https://loja-dod.onrender.com/api/produtos/${id_produto}`, {
         method: 'DELETE'
       });
 
