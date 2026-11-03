@@ -193,6 +193,18 @@ app.delete('/api/produtos/:id', async (req, res) => {
   }
 });
 
+// ==========================================
+// ROTA PARA BUSCAR CATEGORIAS
+// ==========================================
+app.get('/api/categorias', async (req, res) => {
+  try {
+    const [rows] = await pool.query('SELECT * FROM CATEGORIA');
+    res.json(rows);
+  } catch (error) {
+    res.status(500).json({ error: 'Erro ao buscar categorias.', details: error.message });
+  }
+});
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Servidor a correr na porta ${PORT}`);
