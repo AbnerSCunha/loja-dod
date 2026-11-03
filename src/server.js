@@ -170,6 +170,29 @@ app.post('/api/vendas', async (req, res) => {
   }
 });
 
+// ==========================================
+// ROTA PARA DELETAR PRODUTO
+// ==========================================
+app.delete('/api/produtos/:id', async (req, res) => {
+  const { id } = req.params;
+  
+  try {
+    const [result] = await pool.query('DELETE FROM PRODUTO WHERE id_produto = ?', [id]);
+    
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: 'Produto não encontrado.' });
+    }
+    
+    res.json({ message: 'Produto excluído com sucesso!' });
+  } catch (error) {
+    // Tratamento inteligente: Se o produto já estiver numa venda, o MySQL bloqueia a exclusão
+    if (error.code === 'ER_ROW_IS_REFERENCED_2') {
+      return res.status(400).json({ error: 'Não é possível excluir um produto que já possui vendas registradas.' });
+    }
+    res.status(500).json({ error: 'Erro ao excluir produto.', details: error.message });
+  }
+});
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Servidor a correr na porta ${PORT}`);
