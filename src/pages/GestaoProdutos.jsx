@@ -69,6 +69,28 @@ export function GestaoProdutos() {
         }
     }
 
+    const deletarProduto = async (id_produto) => {
+    // Confirmação para evitar cliques acidentais
+    if (!window.confirm("Tem certeza que deseja excluir este produto?")) return;
+
+    try {
+      // Lembre-se de usar o seu link do Render aqui em vez de localhost se estiver alterando direto em produção!
+      const resposta = await fetch(`https://SEU-LINK-DO-RENDER.onrender.com/api/produtos/${id_produto}`, {
+        method: 'DELETE'
+      });
+
+      if (resposta.ok) {
+        alert("Produto excluído com sucesso!");
+        carregarProdutos(); // Recarrega a tabela automaticamente
+      } else {
+        const erro = await resposta.json();
+        alert(`Erro ao excluir: ${erro.error}`);
+      }
+    } catch (erro) {
+      console.error("Erro na requisição:", erro);
+    }
+  };
+
     return (
         <div className="w-full pb-12 pt-32 px-4 md:px-12">
             <h1 className="text-2xl font-bold tracking-widest uppercase text-black mb-8 border-b border-gray-200 pb-4">Gestão do Stock</h1>
@@ -100,6 +122,7 @@ export function GestaoProdutos() {
                             <th className="py-4 px-4 text-xs font-bold uppercase tracking-wider text-gray-800">Tamanho</th>
                             <th className="py-4 px-4 text-xs font-bold uppercase tracking-wider text-gray-800">Preço</th>
                             <th className="py-4 px-4 text-xs font-bold uppercase tracking-wider text-gray-800">Quantidade em Estoque</th>
+                            <th className="py-4 px-4 text-xs font-bold uppercase tracking-wider text-gray-800 text-right">Ações</th>
                             
                         </tr>
                     </thead>
@@ -111,6 +134,14 @@ export function GestaoProdutos() {
                                 <td className="py-4 px-4 text-sm text-gray-500">{produto.tamanho}</td>
                                 <td className="py-4 px-4 text-sm text-gray-500">{Number(produto.preco).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</td>
                                 <td className="py-4 px-4 text-sm text-gray-500">{produto.quantidade_estoque}</td>
+                                <td className="py-4 px-4 text-sm text-right">
+                                  <button 
+                                    onClick={() => deletarProduto(produto.id_produto)}
+                                    className="text-red-500 font-bold uppercase text-xs hover:text-red-700 transition-colors"
+                                  >
+                                    Excluir
+                                  </button>
+                                </td>
                                                            
                             </tr>
                         ))}
