@@ -14,7 +14,7 @@ export function GestaoProdutos() {
 
     const carregarProdutos = async () => {
         try {
-            const resposta = await fetch('http://localhost:3000/api/produtos');
+            const resposta = await fetch('https://loja-dod.onrender.com/api/produtos');
             const dados = await resposta.json();
 
             if (resposta.ok && Array.isArray(dados)) {
