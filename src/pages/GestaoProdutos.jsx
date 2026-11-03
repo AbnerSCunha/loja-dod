@@ -17,7 +17,7 @@ export function GestaoProdutos() {
       const carregarCategorias = async () => {
         try {
           // Use o link do Render se estiver em produção
-          const resposta = await fetch('http://localhost:3000/api/categorias');
+          const resposta = await fetch('https://loja-dod.onrender.com/api/categorias');
           const dados = await resposta.json();
           if (resposta.ok) {
             setCategorias(dados);
