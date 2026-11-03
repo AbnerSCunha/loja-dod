@@ -11,6 +11,21 @@ export function GestaoProdutos() {
         id_categoria: '',
         imagem_url: ''
     });
+    const [categorias, setCategorias] = useState([]);
+
+      // Função para buscar as categorias do banco
+      const carregarCategorias = async () => {
+        try {
+          // Use o link do Render se estiver em produção
+          const resposta = await fetch('http://localhost:3000/api/categorias');
+          const dados = await resposta.json();
+          if (resposta.ok) {
+            setCategorias(dados);
+          }
+        } catch (erro) {
+          console.error("Erro ao carregar categorias:", erro);
+        }
+      };
 
     const carregarProdutos = async () => {
         try {
@@ -31,6 +46,7 @@ export function GestaoProdutos() {
 
     useEffect(() => {
         carregarProdutos();
+        carregarCategorias();
     }, []);
 
     const handleChange = (e) => {
@@ -101,7 +117,20 @@ export function GestaoProdutos() {
                     <input type="text" name="tamanho" value={formData.tamanho} onChange={handleChange} required placeholder="Tamanho" className="border-b border-gray-300 bg-transparent text-sm uppercase transition-colors rounded-sm py-2 px-4 focus:outline-none focus:ring-1 focus:border-black" />
                     <input type="number" name="preco" value={formData.preco} onChange={handleChange} required placeholder="Preço" className="border-b border-gray-300 bg-transparent text-sm uppercase transition-colors rounded-sm py-2 px-4 focus:outline-none focus:ring-1 focus:border-black" />
                     <input type="number" name="quantidade_estoque" value={formData.quantidade_estoque} onChange={handleChange} required placeholder="Quantidade em Estoque" className="border-b border-gray-300 bg-transparent text-sm uppercase transition-colors rounded-sm py-2 px-4 focus:outline-none focus:ring-1 focus:border-black" />
-                    <input type="number" name="id_categoria" value={formData.id_categoria} onChange={handleChange} required placeholder="ID da Categoria" className="border-b border-gray-300 bg-transparent text-sm uppercase transition-colors rounded-sm py-2 px-4 focus:outline-none focus:ring-1 focus:border-black" />
+                    <select 
+            name="id_categoria" 
+            value={formData.id_categoria} 
+            onChange={handleChange} 
+            required 
+            className="border-b border-gray-300 bg-transparent py-2 focus:border-black outline-none text-sm uppercase transition-colors"
+          >
+            <option value="">Selecione a Categoria</option>
+            {categorias.map(cat => (
+              <option key={cat.id_categoria} value={cat.id_categoria}>
+                {cat.id_categoria} - {cat.nome}
+              </option>
+            ))}
+          </select>
                     <input type="url" name="imagem_url" value={formData.imagem_url} onChange={handleChange} placeholder="URL da Imagem" className="border-b border-gray-300 bg-transparent text-sm uppercase transition-colors rounded-sm py-2 px-4 focus:outline-none focus:ring-1 focus:border-black" />
 
                     <div className="lg:col-span-3 flex justify-end mt-4">
