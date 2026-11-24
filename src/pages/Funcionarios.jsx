@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 
+const API_URL = 'https://loja-dod.onrender.com/api/funcionarios';
+
 export function Funcionarios() {
   const [funcionarios, setFuncionarios] = useState([]);
   const [formData, setFormData] = useState({
@@ -9,7 +11,7 @@ export function Funcionarios() {
 
   const carregarFuncionarios = async () => {
     try {
-      const resposta = await fetch('https://loja-dod.onrender.com/api/funcionarios');
+      const resposta = await fetch(API_URL);
       const dados = await resposta.json();
       
       if (resposta.ok && Array.isArray(dados)) {
@@ -34,7 +36,7 @@ export function Funcionarios() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const resposta = await fetch('https://loja-dod.onrender.com/api/funcionarios', {
+      const resposta = await fetch(API_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)
@@ -48,6 +50,24 @@ export function Funcionarios() {
       }
     } catch (erro) {
       console.error("Erro na requisição:", erro);
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm("Tem certeza que deseja excluir este funcionário?")) return;
+
+    try {
+      const resposta = await fetch(`${API_URL}/${id}`, {
+        method: 'DELETE'
+      });
+
+      if (resposta.ok) {
+        setFuncionarios(funcionarios.filter((funcionario) => funcionario._id !== id));
+      } else {
+        alert("Erro ao excluir o funcionário.");
+      }
+    } catch (erro) {
+      console.error("Erro ao excluir funcionário:", erro);
     }
   };
 
@@ -78,14 +98,23 @@ export function Funcionarios() {
               <th className="py-4 px-4 text-xs font-bold uppercase tracking-wider text-gray-800">ID</th>
               <th className="py-4 px-4 text-xs font-bold uppercase tracking-wider text-gray-800">Nome</th>
               <th className="py-4 px-4 text-xs font-bold uppercase tracking-wider text-gray-800">Cargo</th>
+              <th className="py-4 px-4 text-xs font-bold uppercase tracking-wider text-gray-800 text-right">Ações</th>
             </tr>
           </thead>
           <tbody>
             {funcionarios.map((funcionario) => (
-              <tr key={funcionario.id_funcionario} className="border-b border-gray-200 hover:bg-gray-50 transition-colors">
-                <td className="py-4 px-4 text-sm text-gray-500">{funcionario.id_funcionario}</td>
+              <tr key={funcionario._id} className="border-b border-gray-200 hover:bg-gray-50 transition-colors">
+                <td className="py-4 px-4 text-xs font-mono text-gray-500">{funcionario._id?.slice(-6)}</td>
                 <td className="py-4 px-4 text-sm font-medium uppercase">{funcionario.nome}</td>
                 <td className="py-4 px-4 text-sm text-gray-500 uppercase">{funcionario.cargo}</td>
+                <td className="py-4 px-4 text-sm text-right">
+                  <button
+                    onClick={() => handleDelete(funcionario._id)}
+                    className="text-red-500 hover:text-red-700 font-bold text-xs uppercase"
+                  >
+                    Excluir
+                  </button>
+                </td>
               </tr>
             ))}
           </tbody>
