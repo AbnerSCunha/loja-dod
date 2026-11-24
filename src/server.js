@@ -1,176 +1,203 @@
 import express from 'express';
 import cors from 'cors';
-import { pool } from './config/db.js';
+import dotenv from 'dotenv';
+import { connectDB } from './config/db.js';
+import { Produto, Cliente, Funcionario, Venda } from './models/schemas.js';
+
+dotenv.config();
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-app.get('/api/status', async (req, res) => {
-  try {
-    const [rows] = await pool.query('SELECT 1 + 1 AS solution');
-    res.json({ status: 'Conectado ao Aiven com sucesso através do db.js!', data: rows });
-  } catch (error) {
-    res.status(500).json({ error: 'Falha na conexão', details: error.message });
-  }
+// Conecta ao MongoDB Atlas ao iniciar o servidor
+connectDB();
+
+// Rota de status da API
+app.get('/api/status', (req, res) => {
+  res.json({ status: 'API DOD Alfaiataria (NoSQL / MongoDB) rodando!' });
 });
 
 // ==========================================
-// ROTAS DE PRODUTOS
+// ROTAS DE PRODUTOS (CRUD + Consulta Estruturada)
 // ==========================================
+
+// Listar produtos (com suporte a filtros estruturados via query params)
+// Ex: GET /api/produtos?tamanho=M ou GET /api/produtos?categoria=Acessórios
 app.get('/api/produtos', async (req, res) => {
   try {
-    const [rows] = await pool.query('SELECT * FROM PRODUTO');
-    res.json(rows);
+    const filtro = {};
+    if (req.query.tamanho) filtro.tamanho = req.query.tamanho;
+    if (req.query.categoria) filtro['categoria.descricao'] = req.query.categoria;
+
+    const produtos = await Produto.find(filtro);
+    res.json(produtos);
   } catch (error) {
     res.status(500).json({ error: 'Erro ao buscar produtos', details: error.message });
   }
 });
 
+// Inserir novo produto (com categoria aninhada)
 app.post('/api/produtos', async (req, res) => {
-  const { id_produto, descricao, tamanho, preco, quantidade_estoque, id_categoria, imagem_url } = req.body;
   try {
-    await pool.query(
-      'INSERT INTO PRODUTO (id_produto, descricao, tamanho, preco, quantidade_estoque, id_categoria, imagem_url) VALUES (?, ?, ?, ?, ?, ?, ?)',
-      [id_produto, descricao, tamanho, preco, quantidade_estoque, id_categoria, imagem_url]
+    const { descricao, tamanho, preco, quantidade_estoque, imagem_url, categoria } = req.body;
+    const novoProduto = await Produto.create({
+      descricao,
+      tamanho,
+      preco,
+      quantidade_estoque,
+      imagem_url,
+      // Aceita tanto objeto { descricao: "..." } quanto string simples
+      categoria: typeof categoria === 'string' ? { descricao: categoria } : categoria
+    });
+    res.status(201).json(novoProduto);
+  } catch (error) {
+    res.status(400).json({ error: 'Erro ao cadastrar produto', details: error.message });
+  }
+});
+
+// Atualizar produto (ex: preço ou estoque)
+app.put('/api/produtos/:id', async (req, res) => {
+  try {
+    const produtoAtualizado = await Produto.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      { new: true, runValidators: true }
     );
-    res.status(201).json({ message: 'Produto cadastrado com sucesso!' });
+    if (!produtoAtualizado) return res.status(404).json({ error: 'Produto não encontrado' });
+    res.json(produtoAtualizado);
   } catch (error) {
-    res.status(500).json({ error: 'Erro ao cadastrar produto', details: error.message });
+    res.status(400).json({ error: 'Erro ao atualizar produto', details: error.message });
   }
 });
 
-// ==========================================
-// ROTAS DE CATEGORIAS
-// ==========================================
-app.get('/api/categorias', async (req, res) => {
+// Excluir produto
+app.delete('/api/produtos/:id', async (req, res) => {
   try {
-    const [rows] = await pool.query('SELECT * FROM CATEGORIA');
-    res.json(rows);
+    const produtoRemovido = await Produto.findByIdAndDelete(req.params.id);
+    if (!produtoRemovido) return res.status(404).json({ error: 'Produto não encontrado' });
+    res.json({ message: 'Produto excluído com sucesso!' });
   } catch (error) {
-    res.status(500).json({ error: 'Erro ao buscar categorias', details: error.message });
-  }
-});
-
-app.post('/api/categorias', async (req, res) => {
-  const { id_categoria, descricao } = req.body;
-  try {
-    await pool.query('INSERT INTO CATEGORIA (id_categoria, descricao) VALUES (?, ?)', [id_categoria, descricao]);
-    res.status(201).json({ message: 'Categoria cadastrada com sucesso!' });
-  } catch (error) {
-    res.status(500).json({ error: 'Erro ao cadastrar categoria', details: error.message });
+    res.status(500).json({ error: 'Erro ao excluir produto', details: error.message });
   }
 });
 
 // ==========================================
-// ROTAS DE CLIENTES
+// ROTAS DE CLIENTES (CRUD)
 // ==========================================
 app.get('/api/clientes', async (req, res) => {
   try {
-    const [rows] = await pool.query('SELECT * FROM CLIENTE');
-    res.json(rows);
+    const clientes = await Cliente.find();
+    res.json(clientes);
   } catch (error) {
     res.status(500).json({ error: 'Erro ao buscar clientes', details: error.message });
   }
 });
 
 app.post('/api/clientes', async (req, res) => {
-  const { id_cliente, nome, email, telefone } = req.body;
   try {
-    await pool.query(
-      'INSERT INTO CLIENTE (id_cliente, nome, email, telefone) VALUES (?, ?, ?, ?)',
-      [id_cliente, nome, email, telefone]
-    );
-    res.status(201).json({ message: 'Cliente cadastrado com sucesso!' });
+    const novoCliente = await Cliente.create(req.body);
+    res.status(201).json(novoCliente);
   } catch (error) {
-    res.status(500).json({ error: 'Erro ao cadastrar cliente', details: error.message });
+    res.status(400).json({ error: 'Erro ao cadastrar cliente', details: error.message });
+  }
+});
+
+app.put('/api/clientes/:id', async (req, res) => {
+  try {
+    const clienteAtualizado = await Cliente.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    if (!clienteAtualizado) return res.status(404).json({ error: 'Cliente não encontrado' });
+    res.json(clienteAtualizado);
+  } catch (error) {
+    res.status(400).json({ error: 'Erro ao atualizar cliente', details: error.message });
+  }
+});
+
+app.delete('/api/clientes/:id', async (req, res) => {
+  try {
+    await Cliente.findByIdAndDelete(req.params.id);
+    res.json({ message: 'Cliente excluído com sucesso!' });
+  } catch (error) {
+    res.status(500).json({ error: 'Erro ao excluir cliente', details: error.message });
   }
 });
 
 // ==========================================
-// ROTAS DE FUNCIONÁRIOS
+// ROTAS DE FUNCIONÁRIOS (CRUD)
 // ==========================================
 app.get('/api/funcionarios', async (req, res) => {
   try {
-    const [rows] = await pool.query('SELECT * FROM FUNCIONARIO');
-    res.json(rows);
+    const funcionarios = await Funcionario.find();
+    res.json(funcionarios);
   } catch (error) {
     res.status(500).json({ error: 'Erro ao buscar funcionários', details: error.message });
   }
 });
 
 app.post('/api/funcionarios', async (req, res) => {
-  const { id_funcionario, nome, cargo } = req.body;
   try {
-    await pool.query(
-      'INSERT INTO FUNCIONARIO (id_funcionario, nome, cargo) VALUES (?, ?, ?)',
-      [id_funcionario, nome, cargo]
-    );
-    res.status(201).json({ message: 'Funcionário cadastrado com sucesso!' });
+    const novoFuncionario = await Funcionario.create(req.body);
+    res.status(201).json(novoFuncionario);
   } catch (error) {
-    res.status(500).json({ error: 'Erro ao cadastrar funcionário', details: error.message });
+    res.status(400).json({ error: 'Erro ao cadastrar funcionário', details: error.message });
+  }
+});
+
+app.delete('/api/funcionarios/:id', async (req, res) => {
+  try {
+    await Funcionario.findByIdAndDelete(req.params.id);
+    res.json({ message: 'Funcionário excluído com sucesso!' });
+  } catch (error) {
+    res.status(500).json({ error: 'Erro ao excluir funcionário', details: error.message });
   }
 });
 
 // ==========================================
-// ROTA TRANSACIONAL DE VENDAS
+// ROTAS DE VENDAS (Embedding + References)
 // ==========================================
-app.post('/api/vendas', async (req, res) => {
-  // A requisição vai receber o cliente, o funcionário e um array de itens (o carrinho)
-  const { id_cliente, id_funcionario, itens } = req.body;
-  
-  if (!itens || itens.length === 0) {
-    return res.status(400).json({ error: 'A venda precisa de pelo menos um item.' });
-  }
 
-  // Calcula o valor total da venda no back-end (mais seguro do que confiar no front-end)
-  const valor_total = itens.reduce((total, item) => total + (item.quantidade * item.valor_unitario), 0);
-  
-  // Pega uma conexão dedicada do pool para gerenciar a transação
-  const connection = await pool.getConnection();
-
+// Listar vendas resolvendo as referências de Cliente e Funcionário
+app.get('/api/vendas', async (req, res) => {
   try {
-    // 1. Inicia a transação de bloqueio
-    await connection.beginTransaction();
+    const vendas = await Venda.find()
+      .populate('cliente_id', 'nome email')
+      .populate('funcionario_id', 'nome cargo');
+    res.json(vendas);
+  } catch (error) {
+    res.status(500).json({ error: 'Erro ao buscar vendas', details: error.message });
+  }
+});
 
-    // 2. Cria o registro principal da Venda
-    const data_venda = new Date().toISOString().slice(0, 19).replace('T', ' '); // Formata data pro MySQL
-    const [resultVenda] = await connection.query(
-      'INSERT INTO VENDA (data_venda, valor_total, id_cliente, id_funcionario) VALUES (?, ?, ?, ?)',
-      [data_venda, valor_total, id_cliente, id_funcionario]
-    );
-    const id_venda = resultVenda.insertId; // Pega o ID que o Aiven gerou para esta venda
+// Registrar nova venda e atualizar o estoque dos produtos
+app.post('/api/vendas', async (req, res) => {
+  try {
+    const { cliente_id, funcionario_id, itens } = req.body;
 
-    // 3. Processa cada item do carrinho
+    // Calcula o valor total com base nos itens enviados
+    const valor_total = itens.reduce((acc, item) => acc + item.preco_unitario * item.quantidade, 0);
+
+    // Cria o documento da venda
+    const novaVenda = await Venda.create({
+      cliente_id,
+      funcionario_id,
+      itens,
+      valor_total
+    });
+
+    // Atualiza (decrementa) o estoque de cada produto vendido
     for (const item of itens) {
-      // Salva o item vinculando ao ID da venda
-      await connection.query(
-        'INSERT INTO ITEM_VENDA (id_venda, id_produto, quantidade, valor_unitario) VALUES (?, ?, ?, ?)',
-        [id_venda, item.id_produto, item.quantidade, item.valor_unitario]
-      );
-
-      // Dá baixa no estoque subtraindo a quantidade comprada
-      await connection.query(
-        'UPDATE PRODUTO SET quantidade_estoque = quantidade_estoque - ? WHERE id_produto = ?',
-        [item.quantidade, item.id_produto]
-      );
+      await Produto.findByIdAndUpdate(item.produto_id, {
+        $inc: { quantidade_estoque: -item.quantidade }
+      });
     }
 
-    // 4. Se chegou até aqui sem erros, confirma a gravação definitiva no Aiven
-    await connection.commit();
-    res.status(201).json({ message: 'Venda finalizada com sucesso!', id_venda });
-
+    res.status(201).json(novaVenda);
   } catch (error) {
-    // Se der QUALQUER erro no meio do caminho, desfaz tudo para não corromper os dados
-    await connection.rollback();
-    res.status(500).json({ error: 'Erro ao processar venda. Transação cancelada.', details: error.message });
-  } finally {
-    // Devolve a conexão para o pool
-    connection.release();
+    res.status(400).json({ error: 'Erro ao registrar venda', details: error.message });
   }
 });
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`Servidor a correr na porta ${PORT}`);
+  console.log(`Servidor rodando na porta ${PORT}`);
 });
