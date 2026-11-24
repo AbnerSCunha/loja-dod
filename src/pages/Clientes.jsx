@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 
+const API_URL = 'https://loja-dod.onrender.com/api/clientes';
+
 export function Clientes() {
   const [clientes, setClientes] = useState([]);
   const [formData, setFormData] = useState({
@@ -10,7 +12,7 @@ export function Clientes() {
 
   const carregarClientes = async () => {
     try {
-      const resposta = await fetch('https://loja-dod.onrender.com/api/clientes');
+      const resposta = await fetch(API_URL);
       const dados = await resposta.json();
       
       if (resposta.ok && Array.isArray(dados)) {
@@ -35,7 +37,7 @@ export function Clientes() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const resposta = await fetch('https://loja-dod.onrender.com/api/clientes', {
+      const resposta = await fetch(API_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)
@@ -49,6 +51,24 @@ export function Clientes() {
       }
     } catch (erro) {
       console.error("Erro na requisição:", erro);
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm("Tem certeza que deseja excluir este cliente?")) return;
+
+    try {
+      const resposta = await fetch(`${API_URL}/${id}`, {
+        method: 'DELETE'
+      });
+
+      if (resposta.ok) {
+        setClientes(clientes.filter((cliente) => cliente._id !== id));
+      } else {
+        alert("Erro ao excluir o cliente.");
+      }
+    } catch (erro) {
+      console.error("Erro ao excluir cliente:", erro);
     }
   };
 
@@ -81,15 +101,24 @@ export function Clientes() {
               <th className="py-4 px-4 text-xs font-bold uppercase tracking-wider text-gray-800">Nome</th>
               <th className="py-4 px-4 text-xs font-bold uppercase tracking-wider text-gray-800">E-mail</th>
               <th className="py-4 px-4 text-xs font-bold uppercase tracking-wider text-gray-800">Telefone</th>
+              <th className="py-4 px-4 text-xs font-bold uppercase tracking-wider text-gray-800 text-right">Ações</th>
             </tr>
           </thead>
           <tbody>
             {clientes.map((cliente) => (
-              <tr key={cliente.id_cliente} className="border-b border-gray-200 hover:bg-gray-50 transition-colors">
-                <td className="py-4 px-4 text-sm text-gray-500">{cliente.id_cliente}</td>
+              <tr key={cliente._id} className="border-b border-gray-200 hover:bg-gray-50 transition-colors">
+                <td className="py-4 px-4 text-xs font-mono text-gray-500">{cliente._id?.slice(-6)}</td>
                 <td className="py-4 px-4 text-sm font-medium uppercase">{cliente.nome}</td>
                 <td className="py-4 px-4 text-sm text-gray-500">{cliente.email}</td>
                 <td className="py-4 px-4 text-sm text-gray-500">{cliente.telefone}</td>
+                <td className="py-4 px-4 text-sm text-right">
+                  <button
+                    onClick={() => handleDelete(cliente._id)}
+                    className="text-red-500 hover:text-red-700 font-bold text-xs uppercase"
+                  >
+                    Excluir
+                  </button>
+                </td>
               </tr>
             ))}
           </tbody>
